@@ -1,0 +1,65 @@
+---
+title: 'Untitled'
+author: 'Kelsey McCornack'
+date: '2023-11-08'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd('C:\\Users\\kmcco\\OneDrive\\Desktop\\DataScienceSelfStudy\\The Violence Project')
+```
+
+```{r, warning=FALSE}
+# load libraries
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
+# Load dataset and tidy names
+mass_shooter_data <- read.csv('Violence Project Mass Shooter Database - Version 7 5.28.23 FLAT.csv')
+mass_shooter_data <- mass_shooter_data[-1,]
+
+mass_shooter_data <- mass_shooter_data %>%
+  rename_all(~gsub('[^A-Za-z]', '', .))
+```
+
+```{r}
+# Load code book
+codebook <- read.csv('Violence Project Code Book.csv')
+
+
+```
+
+```{r}
+# Fix data types
+cont_vars <- mass_shooter_data[,c('NumberKilled', 'NumberInjured', 'Height', 'Weight', 'NumberofSiblings', 'OlderSiblings', 'YoungerSiblings', 'TotalFirearmsBroughttotheScene', 'Longitude', 'Latitude', 'Year')]
+
+special_vars <- mass_shooter_data[,c('FullDate', 'Longitude', 'Latitude')]
+
+bool_vars <- mass_shooter_data %>%
+  select_if(~all(. %in% c(0,1, NA, 'NA')))
+
+names(bool_vars)
+cat_vars <-mass_shooter_data %>%
+  select(-one_of(names(c(bool_vars, cont_vars, special_vars))))
+
+mass_shooter_data <- mass_shooter_data %>%
+  mutate_at(vars(names(bool_vars)), list(~ as.logical(.))) %>%
+  mutate_at(vars(names(cat_vars)), list(~ as.factor(.)))
+
+mass_shooter_data$FullDate <- as.Date(mass_shooter_data$FullDate, format = '%m-%d-%Y')
+
+names(bool_vars)
+```
+Something weird is going on in the KidnappingorHostageSituation column. What are S and 2?
+Isn't the variable boolean?
+
+Columns with issues:
+Children (should be boolean?) Why isn't it getting caught by lines 33-34?
+----> There's a random 5 in there?
+
+
+TO DO
+Get codebook into standard form and use it to correct the data types
